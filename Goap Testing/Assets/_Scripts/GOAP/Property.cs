@@ -282,6 +282,7 @@ public class Property
                 case TypeCode.Int16:
                 case TypeCode.Int32:
                 case TypeCode.Int64:
+                    return (int)left.data != (int)right.data;
                 case TypeCode.Single:
                 case TypeCode.Double:
                 case TypeCode.Decimal:

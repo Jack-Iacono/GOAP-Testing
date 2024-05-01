@@ -161,11 +161,6 @@ public class GOAP
             // Get the lowest priority item from the queue
             currentGoal = (WorldState)queue.Extract();
 
-            if (cameFrom[currentGoal].action != null)
-                Debug.Log("Result of " + cameFrom[currentGoal].action.ToString() + " -> Satisfies: ----------------------------------------------------------------------------------------------------------------------------------\nCurrent Goal: " + currentGoal.ToString() + "\nCurrent State: " + currentState.ToString());
-            else
-                Debug.Log("Satisfies: ----------------------------------------------------------------------------------------------------------------------------------\nCurrent Goal: " + currentGoal.ToString() + "\nCurrent State: " + currentState.ToString());
-
             // If the currentState is satisfied by the currentGoal, we have found our path and we can exit
             if (currentState.Satisfies(currentGoal) || itteration >= ittLimit)
             {

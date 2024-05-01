@@ -11,7 +11,7 @@ public class Action
     string name;
 
     // These will be used later to call the methods associated with the action
-    public delegate void ActionDelegate();
+    public delegate bool ActionDelegate();
     ActionDelegate actionDelegate;
 
     public Action(string name, int cost, WorldState preCondition, WorldState postCondition)
@@ -20,6 +20,14 @@ public class Action
         this.name = name;
         this.preCondition = preCondition;
         this.postCondition = postCondition;
+    }
+    public Action(string name, int cost, WorldState preCondition, WorldState postCondition, ActionDelegate action)
+    {
+        this.cost = cost;
+        this.name = name;
+        this.preCondition = preCondition;
+        this.postCondition = postCondition;
+        actionDelegate = action;
     }
 
     /// <summary>
@@ -64,7 +72,12 @@ public class Action
     /// <returns>True if the given state satisfies the action's preconditions, otherwise returns False</returns>
     public bool Doable(WorldState state)
     {
-        return state.Satisfies(preCondition);
+        return preCondition.Satisfies(state);
+    }
+
+    public bool DoAction()
+    {
+        return actionDelegate();
     }
 
     public override string ToString()

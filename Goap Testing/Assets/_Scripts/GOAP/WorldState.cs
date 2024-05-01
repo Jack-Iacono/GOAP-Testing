@@ -115,8 +115,21 @@ public class WorldState
         {
             if (!properties.ContainsKey(key))
                 properties.Add(key, other.properties[key]);
-            else if (properties[key] != other.properties[key] && overwrite)
-                properties[key] = other.properties[key];
+            else if (overwrite)
+            {
+                switch (other.GetProperty(key).mergeType)
+                {
+                    case Value.MergeType.ADD:
+                        properties[key] += other.properties[key];
+                        break;
+                    case Value.MergeType.MULTIPLY:
+                        properties[key] *= other.properties[key];
+                        break;
+                    case Value.MergeType.SET:
+                        properties[key] = other.properties[key];
+                        break;
+                }
+            }
         }
     }
 
@@ -185,9 +198,13 @@ public class WorldState
     public override string ToString()
     {
         string s = string.Empty;
-        foreach(Property.Key prop in properties.Keys)
+        /*foreach(Property.Key prop in properties.Keys)
         {
             s += "\n" + prop + ": " + properties[prop];
+        }*/
+        foreach(Property.Key prop in properties.Keys)
+        {
+            s += "\n" + prop + ": " + properties[prop].data;
         }
         return s;
     }
