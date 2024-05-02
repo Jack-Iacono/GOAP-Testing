@@ -148,7 +148,7 @@ public class WorldState
 
         foreach(Key key in other.properties.Keys)
         {
-            if (properties.ContainsKey(key) && !GetProperty(key).SatisfiesCompare(other.GetProperty(key)))
+            if (properties.ContainsKey(key) && !other.GetProperty(key).SatisfiesCompare(GetProperty(key)))
                 return false;
         }
 

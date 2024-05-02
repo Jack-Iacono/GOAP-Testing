@@ -110,9 +110,9 @@ public class Property
                 return false;
 
             // TEMPORARY
-            if (Type.GetTypeCode(dataType) != TypeCode.Boolean && ((int)v.Unify(this).data < (int)min || (int)v.Unify(this).data > (int)max))
+            if (Type.GetTypeCode(dataType) != TypeCode.Boolean)
             {
-                return false;
+                return true;
             }
 
             switch (Type.GetTypeCode(dataType))
@@ -146,8 +146,8 @@ public class Property
             if (dataType != v.dataType)
                 return false;
 
-            // v = Current Goal
-            // this = Current State
+            // v = Current State
+            // this = Current Goal
 
             switch (compareType)
             {
@@ -170,6 +170,8 @@ public class Property
         {
             if (dataType != v.dataType)
                 return false;
+
+            Debug.Log(this + " " + compareType + " " + v);
 
             switch (compareType)
             {

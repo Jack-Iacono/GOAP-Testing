@@ -157,9 +157,9 @@ public class PriorityQueue
     {
         return heap.Count <= 0;
     }
-    public object Front()
+    public int Front()
     {
-        return heap[1].value;
+        return heap[0].priority;
     }
 
     #endregion

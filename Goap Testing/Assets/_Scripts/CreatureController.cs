@@ -17,8 +17,8 @@ public class CreatureController : MonoBehaviour
 
     private List<Action> currentPlan = new List<Action>();
 
-    private float actionTimer = 5;
-    private float actionTime = 2;
+    private float actionTimer = 0.5f;
+    private float actionTime = 0.5f;
 
     private NavMeshAgent navAgent;
 
@@ -156,20 +156,21 @@ public class CreatureController : MonoBehaviour
 
         currentState = new WorldState( new Dictionary<Property.Key, Property.Value>()
                 {
-                    { new Property.Key("has_pizza", gameObject), new Property.Value(3) },
+                    { new Property.Key("has_pizza", gameObject), new Property.Value(0) },
                     { new Property.Key("has_money", gameObject), new Property.Value(0) },
                     { new Property.Key("at_home", gameObject), new Property.Value(false) },
                     { new Property.Key("at_work", gameObject), new Property.Value(false) },
                     { new Property.Key("at_customer", gameObject), new Property.Value(false) },
-                    { new Property.Key("found_customer", gameObject), new Property.Value(false) }
+                    { new Property.Key("found_customer", gameObject), new Property.Value(false) },
+                    { new Property.Key("random_param", gameObject), new Property.Value(false) },
+                    { new Property.Key("random_param2", gameObject), new Property.Value(true) }
                 });
 
         goals.Add(
             new WorldState(
                 new Dictionary<Property.Key, Property.Value>()
                 {
-                    { new Property.Key("has_money", gameObject), new Property.Value(28, Property.Value.CompareType.GREATER_EQUAL) },
-                    { new Property.Key("has_pizza", gameObject), new Property.Value(0, Property.Value.CompareType.LESS_EQUAL) }
+                    { new Property.Key("has_money", gameObject), new Property.Value(60, Property.Value.CompareType.GREATER_EQUAL) }
                 })
             );
 
@@ -181,7 +182,7 @@ public class CreatureController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.E))
+        if (Input.GetKeyDown(KeyCode.E) && currentPlan.Count == 0)
         {
             float startTime = Time.time;
             currentPlan = GOAP.Search(actions, currentState, goals[0]);
@@ -189,6 +190,8 @@ public class CreatureController : MonoBehaviour
             foreach (Action action in currentPlan)
                 planString += action.ToString() + " -> ";
             Debug.Log(planString + "\nPlan Finished in " + (Time.time - startTime).ToString());
+
+            UIController.instance.SetGoal(goals[0].ToString());
         }
             
 
@@ -200,8 +203,18 @@ public class CreatureController : MonoBehaviour
 
     public void ExecutePlan()
     {
-        bool check = currentPlan[0].DoAction();
-        UIController.instance.SetAction(currentPlan[0].ToString());
+        bool check = false;
+
+        if (currentPlan[0].Doable(currentState))
+        {
+            check = currentPlan[0].DoAction();
+            UIController.instance.SetAction(currentPlan[0].ToString());
+        }
+        else
+        {
+            Debug.Log("Plan Failed at " + currentPlan[0]);
+            currentPlan.Clear();
+        }
 
         if (check)
         {
@@ -214,7 +227,6 @@ public class CreatureController : MonoBehaviour
 
     private bool MakePizza()
     {
-        Debug.Log("Making Pizza");
         actionTimer -= Time.deltaTime;
         if(actionTimer <= 0)
             return true;
@@ -222,7 +234,6 @@ public class CreatureController : MonoBehaviour
     }
     private bool SellPizza()
     {
-        Debug.Log("Selling Pizza");
         actionTimer -= Time.deltaTime;
         if (actionTimer <= 0)
             return true;
@@ -230,7 +241,6 @@ public class CreatureController : MonoBehaviour
     }
     private bool FindCustomer()
     {
-        Debug.Log("Finding Customer");
         actionTimer -= Time.deltaTime;
         if (actionTimer <= 0)
             return true;

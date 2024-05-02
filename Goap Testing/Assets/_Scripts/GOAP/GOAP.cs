@@ -1,9 +1,5 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Net.Http.Headers;
-using System.Threading;
-using Unity.PlasticSCM.Editor.WebApi;
 using UnityEngine;
 
 public class GOAP
@@ -39,9 +35,31 @@ public class GOAP
         int dist = 0;
         foreach(Property.Key key in dst.properties.Keys)
         {
-            if (!src.ContainsKey(key) || !src.GetProperty(key).Equals(dst.GetProperty(key)))
+            if (!src.properties.ContainsKey(key))
+            {
                 dist++;
+            }
+            else
+            {
+                switch (Type.GetTypeCode(src.GetProperty(key).dataType))
+                {
+                    case TypeCode.Int16:
+                    case TypeCode.Int32:
+                    case TypeCode.Int64:
+                        dist += Mathf.Abs((int)src.GetProperty(key).data - (int)dst.GetProperty(key).data);
+                        break;
+                    case TypeCode.Single:
+                    case TypeCode.Double:
+                    case TypeCode.Decimal:
+                        dist += (int)Mathf.Abs((float)src.GetProperty(key).data - (float)dst.GetProperty(key).data);
+                        break;
+                    case TypeCode.Boolean:
+                        dist += src.GetProperty(key).Equals(dst.GetProperty(key)) ? 0 : 1;
+                        break;
+                }
+            }
         }
+
         return dist;
     }
 
@@ -78,43 +96,33 @@ public class GOAP
         foreach (Property.Key key in action.postCondition.properties.Keys)
         {
             if (newState.ContainsKey(key) && !newState.GetProperty(key).UnifyCompare(action.postCondition.GetProperty(key)))
-            {
-                Debug.Log(action.ToString() + " failed at postCondition conflict at " + key);
                 return null;
-            }
+
             else if (newState.ContainsKey(key))
             {
                 if (action.postCondition.GetProperty(key).mergeType == Property.Value.MergeType.SET)
                     newState.DropProperty(key);
                 else
-                {
                     newState.ChangeProperty(key, action.postCondition.GetProperty(key));
-                }
             }
         }
 
         // If the state hasn't / won't change, return null as this action doens't really do anything
         if (goalState.Equals(newState))
-        {
-            Debug.Log(action.ToString() + " failed at change check");
             return null;
-        }
 
         // Loop through all the properties in the action's precondition
         // If the property does not appear in the newState, add it
-        foreach(Property.Key key in action.preCondition.properties.Keys)
+        // If the precondition's properties could not be fulfilled by this state, return null
+        foreach (Property.Key key in action.preCondition.properties.Keys)
         {
-            // May want to switch to merge if this doesn't work, I think so
             if (!newState.ContainsKey(key))
                 newState.AddProperty(key, action.preCondition.GetProperty(key));
             else if (!action.preCondition.GetProperty(key).UnifyCompare(newState.GetProperty(key)))
-            {
-                Debug.Log(action.ToString() + " failed at preCondition conflict\n" + key + ": " + newState.GetProperty(key).ToString());
                 return null;
-            }
         }
 
-        Debug.Log("Adding " + action);
+        //Debug.Log("Adding " + action);
         return newState;
     }
 
@@ -153,13 +161,18 @@ public class GOAP
         // A check to see if we have found a path or not
         bool pathFound = false;
 
-        int ittLimit = 200;
+        // Adds a cutoff to the amount of times it can run, stops a potential crash
+        int ittLimit = 100000;
         int itteration = 0;
 
         while(!queue.Is_Empty())
         {
             // Get the lowest priority item from the queue
+            //Debug.Log("Lowest Priority: " + queue.Front());
             currentGoal = (WorldState)queue.Extract();
+
+            //Debug.Log("Current Goal --------------------------------------------------------------------------------------------\n" + currentGoal);
+            //Debug.Log("Checking for Satisfies\nCurrent State:" + currentState + "\nCurrent Goal:" + currentGoal);
 
             // If the currentState is satisfied by the currentGoal, we have found our path and we can exit
             if (currentState.Satisfies(currentGoal) || itteration >= ittLimit)
@@ -220,7 +233,6 @@ public class GOAP
 
         return plan;
     }
-
     class SearchData
     {
         public WorldState state;

@@ -8,6 +8,9 @@ public class Action
     public WorldState postCondition { get; private set; }
 
     int cost;
+    public delegate int CostDelegate();
+    CostDelegate costDelegate;
+
     string name;
 
     // These will be used later to call the methods associated with the action
@@ -72,9 +75,13 @@ public class Action
     /// <returns>True if the given state satisfies the action's preconditions, otherwise returns False</returns>
     public bool Doable(WorldState state)
     {
-        return preCondition.Satisfies(state);
+        return state.Satisfies(preCondition);
     }
 
+    /// <summary>
+    /// Performs the action that was passed into the actionDelegate variable
+    /// </summary>
+    /// <returns>True if the action has been completed, otherwise False</returns>
     public bool DoAction()
     {
         return actionDelegate();

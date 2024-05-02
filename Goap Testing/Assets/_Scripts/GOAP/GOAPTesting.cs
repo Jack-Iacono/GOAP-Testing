@@ -343,8 +343,6 @@ public class GOAPTesting : MonoBehaviour
                 )
         };
 
-        Debug.Log("Started");
-
         float startTime = Time.time;
         List<Action> plan = GOAP.Search(actions, initialState, goalState);
         string planString = "Plan is... ";
@@ -441,8 +439,7 @@ public class GOAPTesting : MonoBehaviour
             (
                 new Dictionary<Property.Key, Property.Value>()
                 {
-                    { new Property.Key("has_money", gameObject), new Property.Value(28, Property.Value.CompareType.GREATER_EQUAL) },
-                    { new Property.Key("has_pizza", gameObject), new Property.Value(0, Property.Value.CompareType.LESS_EQUAL) }
+                    { new Property.Key("has_money", gameObject), new Property.Value(28, Property.Value.CompareType.GREATER_EQUAL) }
                 }
             );
 
