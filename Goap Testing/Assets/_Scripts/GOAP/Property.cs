@@ -106,10 +106,12 @@ public class Property
 
         public bool UnifyCompare(Value v)
         {
+            // this = precondition
+            // v = newState
+
             if (dataType != v.dataType)
                 return false;
 
-            // TEMPORARY
             if (Type.GetTypeCode(dataType) != TypeCode.Boolean)
             {
                 return true;
@@ -140,6 +142,31 @@ public class Property
             }
             else
                 return true;
+        }
+        public bool UnifyCompare2(Value v)
+        {
+            // this = precondition
+            // v = newState
+
+            if (dataType != v.dataType)
+                return false;
+
+            switch (compareType)
+            {
+                case CompareType.EQUAL:
+                    return this == v;
+                case CompareType.GREATER:
+                    return v > this;
+                case CompareType.LESS:
+                    return v < this;
+                case CompareType.NOT_EQUAL:
+                    return this != v;
+                case CompareType.GREATER_EQUAL:
+                    return v >= this;
+                case CompareType.LESS_EQUAL:
+                    return v <= this;
+                default: return false;
+            }
         }
         public bool SatisfiesCompare(Value v)
         {

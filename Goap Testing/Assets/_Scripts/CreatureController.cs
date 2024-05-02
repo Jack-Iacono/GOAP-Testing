@@ -170,7 +170,8 @@ public class CreatureController : MonoBehaviour
             new WorldState(
                 new Dictionary<Property.Key, Property.Value>()
                 {
-                    { new Property.Key("has_money", gameObject), new Property.Value(60, Property.Value.CompareType.GREATER_EQUAL) }
+                    { new Property.Key("has_money", gameObject), new Property.Value(60, Property.Value.CompareType.GREATER_EQUAL) },
+                    { new Property.Key("has_pizza", gameObject), new Property.Value(1, Property.Value.CompareType.GREATER_EQUAL) }
                 })
             );
 
