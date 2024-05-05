@@ -191,6 +191,23 @@ public class WorldState
         return true;
     }
 
+    /// <summary>
+    /// Combines one worldstate into the other on the basis of ownership of the property. Only values which are owned by the other WorldState will be overwritten.
+    /// </summary>
+    /// <param name="other">The WorldState to combine into the calling state</param>
+    public void Combine(WorldState other, GameObject owner)
+    {
+        // Run through all the properties coming from the sender
+        foreach(Property.Key key in other.properties.Keys)
+        {
+            // If the sender is the owner of that property, change this WorldState's property to reflect the new value
+            if(key.GetSubject() == null || key.GetSubject() == owner)
+                properties[key] = other.GetProperty(key);
+            else if(!properties.ContainsKey(key))
+                properties.Add(key, other.GetProperty(key));
+        }
+    }
+
     #endregion
 
     #region Helper Functions

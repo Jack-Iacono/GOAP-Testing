@@ -171,7 +171,7 @@ public class GOAP
             //Debug.Log("Lowest Priority: " + queue.Front());
             currentGoal = (WorldState)queue.Extract();
 
-            Debug.Log("Current Goal --------------------------------------------------------------------------------------------\n" + currentGoal);
+            //Debug.Log("Current Goal --------------------------------------------------------------------------------------------\n" + currentGoal);
             //Debug.Log("Checking for Satisfies\nCurrent State:" + currentState + "\nCurrent Goal:" + currentGoal);
 
             // If the currentState is satisfied by the currentGoal, we have found our path and we can exit
@@ -236,7 +236,7 @@ public class GOAP
             for (int i = plan.Count - 1; i >= 0; i--)
             {
                 tempState = Unify(plan[i], tempState);
-                Debug.Log(plan[i] + " -> " + tempState);
+                //Debug.Log(plan[i] + " -> " + tempState);
             }
 
         }

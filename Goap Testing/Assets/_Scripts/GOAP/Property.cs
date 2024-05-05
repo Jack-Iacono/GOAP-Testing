@@ -19,28 +19,45 @@ public class Property
             this.name = name;
             this.subject = subject;
         }
+        public Key(string name)
+        {
+            this.name = name;
+            subject = null;
+        }
 
         public override string ToString()
         {
-            return name;
+            if(subject != null)
+                return "(" + subject.name + ") " + name;
+            else
+                return "(Global) " + name;
         }
 
         public bool Equals(Key x)
         {
-            return name == x.name && subject == x.subject;
+            if (x.subject == null && subject == null)
+                return x.name == name;
+            return x.name == name && x.subject == subject;
         }
 
+        public GameObject GetSubject()
+        {
+            return subject;
+        }
 
         public class EqualityComparer : IEqualityComparer<Key>
         {
             public bool Equals(Key x, Key y)
             {
+                if(x.subject == null && y.subject == null)
+                    return x.name == y.name;
                 return x.name == y.name && x.subject == y.subject;
             }
             public int GetHashCode(Key obj)
             {
                 int hash = 0;
-                hash ^= obj.subject.GetHashCode();
+                if(obj.subject != null)
+                    hash ^= obj.subject.GetHashCode();
                 hash ^= obj.name.GetHashCode();
                 return hash;
             }

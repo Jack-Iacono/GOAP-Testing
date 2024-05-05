@@ -32,6 +32,15 @@ public class Action
         this.postCondition = postCondition;
         actionDelegate = action;
     }
+    public Action(string name, CostDelegate cost, WorldState preCondition, WorldState postCondition, ActionDelegate action)
+    {
+        this.cost = -1;
+        this.name = name;
+        this.preCondition = preCondition;
+        this.postCondition = postCondition;
+        actionDelegate = action;
+        costDelegate = cost;
+    }
 
     /// <summary>
     /// Returns the value of the key within the preCondition dictionary
@@ -66,6 +75,8 @@ public class Action
     /// <returns>I'll give you one guess as to what it does, go ahead...</returns>
     public int GetCost()
     {
+        if (costDelegate != null)
+            return costDelegate();
         return cost;
     }
     /// <summary>
