@@ -83,7 +83,8 @@ public class CreatureController : MonoBehaviour
                     (
                         new Dictionary<Property.Key, Property.Value>()
                         {
-                            { new Property.Key("has_money", gameObject), new Property.Value(7, Property.Value.MergeType.ADD) },
+                            { new Property.Key("has_money", gameObject), new Property.Value(3, Property.Value.MergeType.ADD) },
+                            { new Property.Key("has_money"), new Property.Value(12, Property.Value.MergeType.ADD) },
                             { new Property.Key("has_pizza", gameObject), new Property.Value(-1, Property.Value.MergeType.ADD) },
                             { new Property.Key("at_customer", gameObject), new Property.Value(false) }
                         }
@@ -172,7 +173,7 @@ public class CreatureController : MonoBehaviour
                     , FindCustomer
                 ),
             new Action
-                ("Deposit Money", 5,
+                ("Deposit Money 1", 5,
                     new WorldState
                     (
                         new Dictionary<Property.Key, Property.Value>()
@@ -193,6 +194,28 @@ public class CreatureController : MonoBehaviour
                     )
                     , SellPizza
                 ),
+            new Action
+                ("Deposit Money 5", 5,
+                    new WorldState
+                    (
+                        new Dictionary<Property.Key, Property.Value>()
+                        {
+                            { new Property.Key("has_money", gameObject), new Property.Value(5, Property.Value.CompareType.GREATER_EQUAL) },
+                            { new Property.Key("at_home", gameObject), new Property.Value(false) },
+                            { new Property.Key("at_work", gameObject), new Property.Value(true) },
+                            { new Property.Key("at_customer", gameObject), new Property.Value(false) }
+                        }
+                    ),
+                    new WorldState
+                    (
+                        new Dictionary<Property.Key, Property.Value>()
+                        {
+                            { new Property.Key("has_money", gameObject), new Property.Value(-5, Property.Value.MergeType.ADD) },
+                            { new Property.Key("has_money"), new Property.Value(5, Property.Value.MergeType.ADD) }
+                        }
+                    )
+                    , SellPizza
+                )
         };
 
         currentState = new WorldState( new Dictionary<Property.Key, Property.Value>()
@@ -209,9 +232,7 @@ public class CreatureController : MonoBehaviour
             new WorldState(
                 new Dictionary<Property.Key, Property.Value>()
                 {
-                    { new Property.Key("has_money"), new Property.Value(21, Property.Value.CompareType.GREATER_EQUAL) },
-                    { new Property.Key("has_money", gameObject), new Property.Value(5, Property.Value.CompareType.GREATER_EQUAL) },
-                    { new Property.Key("has_pizza", gameObject), new Property.Value(1, Property.Value.CompareType.GREATER_EQUAL) }
+                    { new Property.Key("has_money", gameObject), new Property.Value(5, Property.Value.CompareType.GREATER_EQUAL) }
                 })
             );
         goals.Add(

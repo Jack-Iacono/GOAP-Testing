@@ -162,9 +162,6 @@ public class Property
         }
         public bool UnifyCompare2(Value v)
         {
-            // this = precondition
-            // v = newState
-
             if (dataType != v.dataType)
                 return false;
 
@@ -323,6 +320,9 @@ public class Property
         }
         public static bool operator !=(Value left, Value right)
         {
+            if (left.dataType != right.dataType)
+                return false;
+
             switch (Type.GetTypeCode(left.dataType))
             {
                 case TypeCode.Int16:

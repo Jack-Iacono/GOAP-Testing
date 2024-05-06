@@ -85,7 +85,7 @@ public class GOAP
     /// <param name="action">The action that is being checked</param>
     /// <param name="goalState">The GoalState that will be checked</param>
     /// <returns>The WorldState that needed to exist in order to perform the action to get to the GoalState</returns>
-    public static WorldState Unify(Action action, WorldState goalState)
+    public static WorldState Unify(Action action, WorldState goalState, WorldState currentState)
     {
         // Make a copy of the goal state so that we can return the orignial later if needed
         WorldState newState = goalState.Duplicate();
@@ -122,7 +122,6 @@ public class GOAP
                 return null;
         }
 
-        //Debug.Log("Adding " + action);
         return newState;
     }
 
@@ -162,7 +161,7 @@ public class GOAP
         bool pathFound = false;
 
         // Adds a cutoff to the amount of times it can run, stops a potential crash
-        int ittLimit = 100000;
+        int ittLimit = 1000;
         int itteration = 0;
 
         while(!queue.Is_Empty())
@@ -171,13 +170,10 @@ public class GOAP
             //Debug.Log("Lowest Priority: " + queue.Front());
             currentGoal = (WorldState)queue.Extract();
 
-            //Debug.Log("Current Goal --------------------------------------------------------------------------------------------\n" + currentGoal);
-            //Debug.Log("Checking for Satisfies\nCurrent State:" + currentState + "\nCurrent Goal:" + currentGoal);
-
             // If the currentState is satisfied by the currentGoal, we have found our path and we can exit
             if (currentState.Satisfies(currentGoal) || itteration >= ittLimit)
             {
-                Debug.Log("Path Found at " + itteration + " iterations\n" + currentGoal);
+                Debug.Log("Path Found at " + itteration + " iterations\nFinal State:\n" + currentGoal);
                 pathFound = true;
                 break;
             }
@@ -189,7 +185,7 @@ public class GOAP
             {
                 // The outcome of the action being performed
                 // Really represents the WorldState that exists before the goalState should this aciton be performed
-                WorldState actionOutcome = Unify(act, currentGoal);
+                WorldState actionOutcome = Unify(act, currentGoal, currentState);
                 if (actionOutcome == null)
                     continue;
 
@@ -232,10 +228,10 @@ public class GOAP
 
             WorldState tempState = goalState.Duplicate();
 
-            Debug.Log("Start -> " + tempState);
+            //Debug.Log("Start -> " + tempState);
             for (int i = plan.Count - 1; i >= 0; i--)
             {
-                tempState = Unify(plan[i], tempState);
+                tempState = Unify(plan[i], tempState, currentState);
                 //Debug.Log(plan[i] + " -> " + tempState);
             }
 
