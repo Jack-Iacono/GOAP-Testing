@@ -208,6 +208,29 @@ public class WorldState
         }
     }
 
+    public bool ProgressCompare(WorldState prior, WorldState current)
+    {
+        foreach(Key key in prior.properties.Keys)
+        {
+            if (ContainsKey(key))
+            {
+                if(!current.ContainsKey(key) || !prior.GetProperty(key).UnifyCompare2(current.GetProperty(key)))
+                {
+                    if (!GetProperty(key).Equals(prior.GetProperty(key)) && prior.GetProperty(key).Compare(GetProperty(key)))
+                    {
+                        return true;
+                    }
+                }
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     #endregion
 
     #region Helper Functions

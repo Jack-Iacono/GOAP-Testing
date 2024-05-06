@@ -108,7 +108,10 @@ public class GOAP
         }
 
         // If the state hasn't / won't change, return null as this action doens't really do anything
-        if (goalState.Equals(newState))
+        //if (goalState.Equals(newState))
+        //return null;
+
+        if (!newState.ProgressCompare(goalState, currentState))
             return null;
 
         // Loop through all the properties in the action's precondition
@@ -161,7 +164,7 @@ public class GOAP
         bool pathFound = false;
 
         // Adds a cutoff to the amount of times it can run, stops a potential crash
-        int ittLimit = 1000;
+        int ittLimit = 100000;
         int itteration = 0;
 
         while(!queue.Is_Empty())
@@ -216,7 +219,7 @@ public class GOAP
         WorldState current = currentGoal;
 
         // Reconstructing the Path
-        if (pathFound)
+        if (pathFound && cameFrom[current].action != null && cameFrom[current].state != null)
         {
             while (true)
             {

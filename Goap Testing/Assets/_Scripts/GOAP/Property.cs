@@ -212,8 +212,6 @@ public class Property
             if (dataType != v.dataType)
                 return false;
 
-            Debug.Log(this + " " + compareType + " " + v);
-
             switch (compareType)
             {
                 case CompareType.EQUAL:

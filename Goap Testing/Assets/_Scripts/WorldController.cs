@@ -42,8 +42,7 @@ public class WorldController : MonoBehaviour
     }
     private void OnCreatureDataChanged(object sender, CreatureController e)
     {
-        Debug.Log("Got Creature Data");
         currentState.Combine(e.currentState, e.gameObject);
-        Debug.Log(currentState.ToString());
+        UIController.instance.SetState(currentState.ToString());
     }
 }

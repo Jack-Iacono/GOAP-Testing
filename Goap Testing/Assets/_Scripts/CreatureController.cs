@@ -232,7 +232,7 @@ public class CreatureController : MonoBehaviour
             new WorldState(
                 new Dictionary<Property.Key, Property.Value>()
                 {
-                    { new Property.Key("has_money", gameObject), new Property.Value(5, Property.Value.CompareType.GREATER_EQUAL) }
+                    { new Property.Key("has_money", gameObject), new Property.Value(100, Property.Value.CompareType.GREATER_EQUAL) }
                 })
             );
         goals.Add(
@@ -299,7 +299,7 @@ public class CreatureController : MonoBehaviour
         if (check)
         {
             currentState.Apply(currentPlan[0]);
-            UIController.instance.SetState(currentState.ToString());
+            
             currentPlan.RemoveAt(0);
             actionTimer = actionTime;
 
