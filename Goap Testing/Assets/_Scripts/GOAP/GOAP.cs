@@ -121,7 +121,7 @@ public class GOAP
         {
             if (!newState.ContainsKey(key))
                 newState.AddProperty(key, action.preCondition.GetProperty(key));
-            else if (!action.preCondition.GetProperty(key).UnifyCompare2(newState.GetProperty(key)))
+            else if (!action.preCondition.GetProperty(key).CompareAgainst(newState.GetProperty(key)))
                 return null;
         }
 
@@ -163,8 +163,8 @@ public class GOAP
         // A check to see if we have found a path or not
         bool pathFound = false;
 
-        // Adds a cutoff to the amount of times it can run, stops a potential crash
-        int ittLimit = 100000;
+        // Adds a cutoff to the amount of times it can run, stops a potential crash due to excessive runtime
+        int ittLimit = 10000;
         int itteration = 0;
 
         while(!queue.Is_Empty())
@@ -174,13 +174,18 @@ public class GOAP
             currentGoal = (WorldState)queue.Extract();
 
             // If the currentState is satisfied by the currentGoal, we have found our path and we can exit
-            if (currentState.Satisfies(currentGoal) || itteration >= ittLimit)
+            // Also exits if the itteration count was met
+            if (currentState.Satisfies(currentGoal))
             {
-                Debug.Log("Path Found at " + itteration + " iterations\nFinal State:\n" + currentGoal);
                 pathFound = true;
                 break;
             }
-
+            else if(itteration >= ittLimit)
+            {
+                Debug.Log("Path Not Found due to Itteration Limit: Either your simulation is incorrectly set up, or increase the limit.");
+                pathFound = false;
+                break;
+            }
             itteration++;
 
             // Loop through all the possible actions
@@ -216,28 +221,26 @@ public class GOAP
             }
         }
 
-        WorldState current = currentGoal;
+        
 
-        // Reconstructing the Path
-        if (pathFound && cameFrom[current].action != null && cameFrom[current].state != null)
+        // Reconstructing the Path if one was found, otherwise just skip
+        if (pathFound)
         {
-            while (true)
+            // Get the WorldState that was ended on
+            WorldState current = currentGoal;
+
+            if(cameFrom[current].action != null && cameFrom[current].state != null)
             {
-                plan.Add(cameFrom[current].action);
-                current = cameFrom[current].state;
-                if (current == goalState)
-                    break;
+                while (true)
+                {
+                    plan.Add(cameFrom[current].action);
+                    current = cameFrom[current].state;
+                    if (current == goalState)
+                        break;
+                }
             }
 
-            WorldState tempState = goalState.Duplicate();
-
-            //Debug.Log("Start -> " + tempState);
-            for (int i = plan.Count - 1; i >= 0; i--)
-            {
-                tempState = Unify(plan[i], tempState, currentState);
-                //Debug.Log(plan[i] + " -> " + tempState);
-            }
-
+            Debug.Log("Path Found at " + itteration + " iterations\nFinal State:\n" + currentGoal);
         }
 
         return plan;

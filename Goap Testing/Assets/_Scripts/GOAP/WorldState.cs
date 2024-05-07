@@ -143,12 +143,11 @@ public class WorldState
     /// </returns>
     public bool Satisfies(WorldState other)
     {
-        // properties = Current State
-        // other = Current Goal
-
+        // Loop through all the properties within the compared state
         foreach(Key key in other.properties.Keys)
         {
-            if (properties.ContainsKey(key) && !other.GetProperty(key).SatisfiesCompare(GetProperty(key)))
+            // If the calling state contains the given key and that value does not meet the requirements, then the satisfy check fails
+            if (properties.ContainsKey(key) && !other.GetProperty(key).CompareAgainst(GetProperty(key)))
                 return false;
         }
 
@@ -208,15 +207,21 @@ public class WorldState
         }
     }
 
+    /// <summary>
+    /// This function compares the post unification WorldState to check if there has been any positive progress at all towards the goal state
+    /// </summary>
+    /// <param name="prior">The state prior to the unified state</param>
+    /// <param name="current">The state that is being worked toward</param>
+    /// <returns>True if progress has been made, otherwise False</returns>
     public bool ProgressCompare(WorldState prior, WorldState current)
     {
         foreach(Key key in prior.properties.Keys)
         {
             if (ContainsKey(key))
             {
-                if(!current.ContainsKey(key) || !prior.GetProperty(key).UnifyCompare2(current.GetProperty(key)))
+                if(!current.ContainsKey(key) || !prior.GetProperty(key).CompareAgainst(current.GetProperty(key)))
                 {
-                    if (!GetProperty(key).Equals(prior.GetProperty(key)) && prior.GetProperty(key).Compare(GetProperty(key)))
+                    if (!GetProperty(key).Equals(prior.GetProperty(key)) && prior.GetProperty(key).CompareWith(GetProperty(key)))
                     {
                         return true;
                     }

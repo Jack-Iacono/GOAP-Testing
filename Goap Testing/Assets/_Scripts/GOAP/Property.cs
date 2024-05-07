@@ -83,6 +83,7 @@ public class Property
         public object max { get; private set; } = 100;
         public object min { get; private set; } = 0;
 
+        #region Constructors
         public Value(object data)
         {
             this.data = data;
@@ -111,7 +112,9 @@ public class Property
             compareType = copy.compareType;
             mergeType = copy.mergeType;
         }
+        #endregion
 
+        #region Simple Methods
         public bool Equals(Value other)
         {
             return Equals(data, other.data);
@@ -120,7 +123,9 @@ public class Property
         {
             return "( Data: " + data.ToString() + ", Type: " + dataType.ToString() + ", Compare: " + compareType.ToString() + ", Merge: " + mergeType.ToString() + ")";
         }
+        #endregion
 
+        #region Comparison Methods
         public bool UnifyCompare(Value v)
         {
             // this = precondition
@@ -160,7 +165,7 @@ public class Property
             else
                 return true;
         }
-        public bool UnifyCompare2(Value v)
+        public bool CompareAgainst(Value v)
         {
             if (dataType != v.dataType)
                 return false;
@@ -182,32 +187,7 @@ public class Property
                 default: return false;
             }
         }
-        public bool SatisfiesCompare(Value v)
-        {
-            if (dataType != v.dataType)
-                return false;
-
-            // v = Current State
-            // this = Current Goal
-
-            switch (compareType)
-            {
-                case CompareType.EQUAL:
-                    return this == v;
-                case CompareType.GREATER:
-                    return v > this;
-                case CompareType.LESS:
-                    return v < this;
-                case CompareType.NOT_EQUAL:
-                    return this != v;
-                case CompareType.GREATER_EQUAL:
-                    return v >= this;
-                case CompareType.LESS_EQUAL:
-                    return v <= this;
-                default: return false;
-            }
-        }
-        public bool Compare(Value v)
+        public bool CompareWith(Value v)
         {
             if (dataType != v.dataType)
                 return false;
@@ -229,6 +209,7 @@ public class Property
                 default: return false;
             }
         }
+        #endregion
 
         public Value Unify(Value v)
         {
