@@ -107,12 +107,11 @@ public class GOAP
             }
         }
 
-        // If the state hasn't / won't change, return null as this action doens't really do anything
-        //if (goalState.Equals(newState))
-        //return null;
-
+        // Check if the state has made POSITIVE PROGRESS toward the desired state
         if (!newState.ProgressCompare(goalState, currentState))
+        {
             return null;
+        }
 
         // Loop through all the properties in the action's precondition
         // If the property does not appear in the newState, add it
@@ -146,8 +145,8 @@ public class GOAP
         WorldState currentGoal = goalState;
 
         // The queue that will store the WorldStates that we will look through
-        PriorityQueue queue = new PriorityQueue();
-        queue.Insert(new PriorityQueue.Element(currentGoal, 1));
+        PriorityQueue<WorldState> queue = new PriorityQueue<WorldState>();
+        queue.Insert(new PriorityQueue<WorldState>.Element(currentGoal, 1));
 
         // The "path" to be traced back later when reconstructing the optimal path
         // Holds a WorldState as the key and SearchData as the Value
@@ -171,7 +170,7 @@ public class GOAP
         {
             // Get the lowest priority item from the queue
             //Debug.Log("Lowest Priority: " + queue.Front());
-            currentGoal = (WorldState)queue.Extract();
+            currentGoal = queue.Extract();
 
             // If the currentState is satisfied by the currentGoal, we have found our path and we can exit
             // Also exits if the itteration count was met
@@ -210,7 +209,7 @@ public class GOAP
                     int priority = newCost + Distance(actionOutcome, currentState);
 
                     // Inserts this WorldState into the queue with the given priority to be checked later on
-                    queue.Insert(new PriorityQueue.Element(actionOutcome, priority));
+                    queue.Insert(new PriorityQueue<WorldState>.Element(actionOutcome, priority));
 
                     // Adds / Changes the cameFrom dictionary to allow for reconstruction later
                     if (cameFrom.ContainsKey(actionOutcome))
@@ -220,8 +219,6 @@ public class GOAP
                 }
             }
         }
-
-        
 
         // Reconstructing the Path if one was found, otherwise just skip
         if (pathFound)

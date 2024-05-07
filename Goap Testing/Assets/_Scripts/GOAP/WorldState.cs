@@ -221,7 +221,11 @@ public class WorldState
             {
                 if(!current.ContainsKey(key) || !prior.GetProperty(key).CompareAgainst(current.GetProperty(key)))
                 {
-                    if (!GetProperty(key).Equals(prior.GetProperty(key)) && prior.GetProperty(key).CompareWith(GetProperty(key)))
+                    if(GetProperty(key).compareType == Value.CompareType.EQUAL && !GetProperty(key).Equals(prior.GetProperty(key)))
+                    {
+                        return true;
+                    }
+                    else if (!GetProperty(key).Equals(prior.GetProperty(key)) && prior.GetProperty(key).CompareWith(GetProperty(key)))
                     {
                         return true;
                     }

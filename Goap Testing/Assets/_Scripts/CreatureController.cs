@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -68,6 +69,26 @@ public class CreatureController : MonoBehaviour
                     , MakePizza
                 ),
             new Action
+                ("Make Pizza Bulk", 4,
+                    new WorldState
+                    (
+                        new Dictionary<Property.Key, Property.Value>()
+                        {
+                            { new Property.Key("at_home", gameObject), new Property.Value(false) },
+                            { new Property.Key("at_work", gameObject), new Property.Value(true) },
+                            { new Property.Key("at_customer", gameObject), new Property.Value(false) }
+                        }
+                    ),
+                    new WorldState
+                    (
+                        new Dictionary<Property.Key, Property.Value>()
+                        {
+                            { new Property.Key("has_pizza", gameObject), new Property.Value(5, Property.Value.MergeType.ADD) },
+                        }
+                    )
+                    , MakePizza
+                ),
+            new Action
                 ("Sell Pizza", 1,
                     new WorldState
                     (
@@ -86,6 +107,30 @@ public class CreatureController : MonoBehaviour
                             { new Property.Key("has_money", gameObject), new Property.Value(3, Property.Value.MergeType.ADD) },
                             { new Property.Key("has_money"), new Property.Value(12, Property.Value.MergeType.ADD) },
                             { new Property.Key("has_pizza", gameObject), new Property.Value(-1, Property.Value.MergeType.ADD) },
+                            { new Property.Key("at_customer", gameObject), new Property.Value(false) }
+                        }
+                    )
+                    , SellPizza
+                ),
+            new Action
+                ("Sell Pizza Bulk", 2,
+                    new WorldState
+                    (
+                        new Dictionary<Property.Key, Property.Value>()
+                        {
+                            { new Property.Key("has_pizza", gameObject), new Property.Value(3, Property.Value.CompareType.GREATER_EQUAL) },
+                            { new Property.Key("at_home", gameObject), new Property.Value(false) },
+                            { new Property.Key("at_work", gameObject), new Property.Value(false) },
+                            { new Property.Key("at_customer", gameObject), new Property.Value(true) }
+                        }
+                    ),
+                    new WorldState
+                    (
+                        new Dictionary<Property.Key, Property.Value>()
+                        {
+                            { new Property.Key("has_money", gameObject), new Property.Value(9, Property.Value.MergeType.ADD) },
+                            { new Property.Key("has_money"), new Property.Value(36, Property.Value.MergeType.ADD) },
+                            { new Property.Key("has_pizza", gameObject), new Property.Value(-3, Property.Value.MergeType.ADD) },
                             { new Property.Key("at_customer", gameObject), new Property.Value(false) }
                         }
                     )
@@ -232,15 +277,14 @@ public class CreatureController : MonoBehaviour
             new WorldState(
                 new Dictionary<Property.Key, Property.Value>()
                 {
-                    { new Property.Key("has_money", gameObject), new Property.Value(40, Property.Value.CompareType.GREATER_EQUAL) },
-                    { new Property.Key("has_pizza", gameObject), new Property.Value(1, Property.Value.CompareType.GREATER_EQUAL) }
+                    { new Property.Key("has_pizza", gameObject), new Property.Value(0, Property.Value.CompareType.EQUAL) }
                 })
             );
         goals.Add(
             new WorldState(
                 new Dictionary<Property.Key, Property.Value>()
                 {
-                    { new Property.Key("has_pizza", gameObject), new Property.Value(0, Property.Value.CompareType.LESS_EQUAL) }
+                    { new Property.Key("has_pizza", gameObject), new Property.Value(5, Property.Value.CompareType.GREATER_EQUAL) }
                 })
             );
 
@@ -254,11 +298,10 @@ public class CreatureController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.E) && currentPlan.Count == 0)
+        if (currentPlan.Count == 0)
         {
             Invoke("MakePlan", startDelay);
         }
-            
 
         if(currentPlan.Count > 0)
         {
@@ -278,8 +321,11 @@ public class CreatureController : MonoBehaviour
         Debug.Log(planString + "\nPlan Finished in " + (Time.time - startTime).ToString());
 
         UIController.instance.SetGoal(goals[0].ToString());
+        UIController.instance.SetState(currentState.ToString());
 
+        WorldState goal = goals[0];
         goals.RemoveAt(0);
+        goals.Add(goal);
     }
 
     public void ExecutePlan()
@@ -300,7 +346,8 @@ public class CreatureController : MonoBehaviour
         if (check)
         {
             currentState.Apply(currentPlan[0]);
-            
+            UIController.instance.SetState(currentState.ToString());
+
             currentPlan.RemoveAt(0);
             actionTimer = actionTime;
 
@@ -351,6 +398,4 @@ public class CreatureController : MonoBehaviour
         else return false;
     }
 
-
-    
 }

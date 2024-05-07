@@ -43,6 +43,6 @@ public class WorldController : MonoBehaviour
     private void OnCreatureDataChanged(object sender, CreatureController e)
     {
         currentState.Combine(e.currentState, e.gameObject);
-        UIController.instance.SetState(currentState.ToString());
+        //UIController.instance.SetState(currentState.ToString());
     }
 }

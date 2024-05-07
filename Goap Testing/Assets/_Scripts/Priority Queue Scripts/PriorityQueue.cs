@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PriorityQueue
+public class PriorityQueue <T>
 {
 
     private List<Element> heap = new List<Element>{ null };
@@ -11,10 +11,10 @@ public class PriorityQueue
 
     public class Element
     {
-        public object value;
+        public T value;
         public int priority;
 
-        public Element(object value, int priority)
+        public Element(T value, int priority)
         {
             this.value = value;
             this.priority = priority;
@@ -69,13 +69,13 @@ public class PriorityQueue
         }
     }
 
-    public object Extract()
+    public T Extract()
     {
         // Returns the value from the beginning of the queue
 
         // Return a null value if the heap is too small
         if (heap.Count == 0)
-            return -1;
+            return default(T);
         
         var v = heap[0].value;
 
