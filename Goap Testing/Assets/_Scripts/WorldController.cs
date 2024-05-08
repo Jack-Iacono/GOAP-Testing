@@ -42,7 +42,7 @@ public class WorldController : MonoBehaviour
     }
     private void OnCreatureDataChanged(object sender, CreatureController e)
     {
-        currentState.Combine(e.currentState, e.gameObject);
+        currentState.Combine(e.currentWorldState, e.gameObject);
         //UIController.instance.SetState(currentState.ToString());
     }
 }

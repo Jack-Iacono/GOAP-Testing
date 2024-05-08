@@ -14,7 +14,7 @@ public class Action
     string name;
 
     // These will be used later to call the methods associated with the action
-    public delegate bool ActionDelegate();
+    public delegate void ActionDelegate();
     ActionDelegate actionDelegate;
 
     public Action(string name, int cost, WorldState preCondition, WorldState postCondition)
@@ -93,9 +93,9 @@ public class Action
     /// Performs the action that was passed into the actionDelegate variable
     /// </summary>
     /// <returns>True if the action has been completed, otherwise False</returns>
-    public bool DoAction()
+    public void DoAction()
     {
-        return actionDelegate();
+        actionDelegate();
     }
 
     public override string ToString()

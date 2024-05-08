@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.TerrainTools;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -13,7 +14,9 @@ public class CreatureController : MonoBehaviour
 
     public event EventHandler<CreatureController> OnCreatureDataChanged;
 
-    public WorldState currentState;
+    public State<CreatureController> currentActionState;
+
+    public WorldState currentWorldState;
     private List<Action> actions;
 
     private List<WorldState> goals = new List<WorldState>();
@@ -24,10 +27,9 @@ public class CreatureController : MonoBehaviour
 
     private List<Action> currentPlan = new List<Action>();
 
-    private float actionTimer = 0.5f;
-    private float actionTime = 0.5f;
+    public NavMeshAgent navAgent;
 
-    private NavMeshAgent navAgent;
+    private bool hasPlan;
 
     public float startDelay = 0;
 
@@ -263,7 +265,7 @@ public class CreatureController : MonoBehaviour
                 )
         };
 
-        currentState = new WorldState( new Dictionary<Property.Key, Property.Value>()
+        currentWorldState = new WorldState( new Dictionary<Property.Key, Property.Value>()
                 {
                     { new Property.Key("has_pizza", gameObject), new Property.Value(0) },
                     { new Property.Key("has_money", gameObject), new Property.Value(0) },
@@ -277,20 +279,21 @@ public class CreatureController : MonoBehaviour
             new WorldState(
                 new Dictionary<Property.Key, Property.Value>()
                 {
-                    { new Property.Key("has_pizza", gameObject), new Property.Value(0, Property.Value.CompareType.EQUAL) }
+                    { new Property.Key("has_pizza", gameObject), new Property.Value(5, Property.Value.CompareType.GREATER_EQUAL) }
                 })
             );
         goals.Add(
             new WorldState(
                 new Dictionary<Property.Key, Property.Value>()
                 {
-                    { new Property.Key("has_pizza", gameObject), new Property.Value(5, Property.Value.CompareType.GREATER_EQUAL) }
+                    { new Property.Key("has_pizza", gameObject), new Property.Value(0, Property.Value.CompareType.EQUAL) }
                 })
             );
+        
 
         navAgent = GetComponent<NavMeshAgent>();
 
-        UIController.instance.SetState(currentState.ToString());
+        UIController.instance.SetState(currentWorldState.ToString());
 
         OnCreatureDataChanged?.Invoke(this, this);
     }
@@ -298,22 +301,20 @@ public class CreatureController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (currentPlan.Count == 0)
-        {
-            Invoke("MakePlan", startDelay);
-        }
+        if (!hasPlan)
+            MakePlan();
 
-        if(currentPlan.Count > 0)
+        if(hasPlan)
         {
             ExecutePlan();
         }
     }
     private void MakePlan()
     {
-        currentState.Combine(WorldController.instance.currentState, WorldController.instance.gameObject);
+        currentWorldState.Combine(WorldController.instance.currentState, WorldController.instance.gameObject);
 
         float startTime = Time.time;
-        currentPlan = GOAP.Search(actions, currentState, goals[0]);
+        currentPlan = GOAP.Search(actions, currentWorldState, goals[0]);
 
         string planString = "Plan is... ";
         foreach (Action action in currentPlan)
@@ -321,81 +322,172 @@ public class CreatureController : MonoBehaviour
         Debug.Log(planString + "\nPlan Finished in " + (Time.time - startTime).ToString());
 
         UIController.instance.SetGoal(goals[0].ToString());
-        UIController.instance.SetState(currentState.ToString());
+        UIController.instance.SetState(currentWorldState.ToString());
 
         WorldState goal = goals[0];
         goals.RemoveAt(0);
         goals.Add(goal);
+
+
+        if (currentPlan.Count > 0)
+        {
+            hasPlan = true;
+        }
     }
 
     public void ExecutePlan()
     {
-        bool check = false;
-
-        if (currentPlan[0].Doable(currentState))
+        if (currentActionState == null)
         {
-            check = currentPlan[0].DoAction();
-            UIController.instance.SetAction(currentPlan[0].ToString());
+            if(currentPlan[0].Doable(currentWorldState))
+            {
+                currentPlan[0].DoAction();
+            }
+            else
+            {
+                Debug.Log("Plan Failed at " + currentPlan[0]);
+                currentPlan.Clear();
+            }
         }
         else
         {
-            Debug.Log("Plan Failed at " + currentPlan[0]);
-            currentPlan.Clear();
-        }
+            State<CreatureController>.Status status = currentActionState.Check(Time.deltaTime);
 
-        if (check)
+            UIController.instance.SetAction(currentPlan[0].ToString());
+
+            if (status == State<CreatureController>.Status.SUCCESS)
+            {
+                currentWorldState.Apply(currentPlan[0]);
+                UIController.instance.SetState(currentWorldState.ToString());
+
+                currentPlan.RemoveAt(0);
+
+                OnCreatureDataChanged?.Invoke(this, this);
+
+                if(currentPlan.Count > 0)
+                {
+                    currentPlan[0].DoAction();
+                }
+                else
+                {
+                    currentActionState = null;
+                    hasPlan = false;
+                }
+            }
+        }
+    }
+
+    private void ChangeState(State<CreatureController> newState)
+    {
+        if (currentActionState != null)
+            currentActionState.Exit();
+        currentActionState = newState;
+        currentActionState.Enter();
+    }
+
+    private void MakePizza()
+    {
+        ChangeState(new MakePizzaState(this));
+    }
+    private void SellPizza()
+    {
+        ChangeState(new SellPizzaState(this));
+    }
+    private void FindCustomer()
+    {
+        ChangeState(new FindCustomerState(this));
+    }
+    private void GotoWork()
+    {
+        ChangeState(new GoToState(this, workObject.transform));
+    }
+    private void GotoHome()
+    {
+        ChangeState(new GoToState(this, homeObject.transform));
+    }
+    private void GotoCustomer()
+    {
+        ChangeState(new GoToState(this, customers[UnityEngine.Random.Range(0,customers.Count)].transform));
+    }
+
+    class MakePizzaState : State<CreatureController>
+    {
+        private float actionTime = 1;
+        private float actionTimer = 0;
+
+        public MakePizzaState(CreatureController owner) : base(owner) { }
+
+        public override Status Check(float deltaTime)
         {
-            currentState.Apply(currentPlan[0]);
-            UIController.instance.SetState(currentState.ToString());
-
-            currentPlan.RemoveAt(0);
-            actionTimer = actionTime;
-
-            OnCreatureDataChanged?.Invoke(this, this);
+            actionTimer -= Time.deltaTime;
+            if (actionTimer <= 0)
+                return Status.SUCCESS;
+            else return Status.RUNNING;
         }
-    }
 
-    private bool MakePizza()
-    {
-        actionTimer -= Time.deltaTime;
-        if(actionTimer <= 0)
-            return true;
-        else return false;
+        public override void Enter()
+        {
+            actionTimer = actionTime;
+        }
+        public override void Exit() { }
     }
-    private bool SellPizza()
+    class SellPizzaState : State<CreatureController>
     {
-        actionTimer -= Time.deltaTime;
-        if (actionTimer <= 0)
-            return true;
-        else return false;
-    }
-    private bool FindCustomer()
-    {
-        actionTimer -= Time.deltaTime;
-        if (actionTimer <= 0)
-            return true;
-        else return false;
-    }
-    private bool GotoWork()
-    {
-        navAgent.destination = workObject.transform.position;
-        if (Vector3.Distance(transform.position, workObject.transform.position) <= 0.5)
-            return true;
-        else return false;
-    }
-    private bool GotoHome()
-    {
-        navAgent.destination = homeObject.transform.position;
-        if (Vector3.Distance(transform.position, homeObject.transform.position) <= 0.5)
-            return true;
-        else return false;
-    }
-    private bool GotoCustomer()
-    {
-        navAgent.destination = customers[0].transform.position;
-        if (Vector3.Distance(transform.position, customers[0].transform.position) <= 0.5)
-            return true;
-        else return false;
-    }
+        private float actionTime = 1;
+        private float actionTimer = 0;
 
+        public SellPizzaState(CreatureController owner) : base(owner) { }
+
+        public override Status Check(float deltaTime)
+        {
+            actionTimer -= Time.deltaTime;
+            if (actionTimer <= 0)
+                return Status.SUCCESS;
+            else return Status.RUNNING;
+        }
+
+        public override void Enter()
+        {
+            actionTimer = actionTime;
+        }
+        public override void Exit() { }
+    }
+    class FindCustomerState : State<CreatureController>
+    {
+        private float actionTime = 2;
+        private float actionTimer = 0;
+
+        public FindCustomerState(CreatureController owner) : base(owner) { }
+
+        public override Status Check(float deltaTime)
+        {
+            actionTimer -= Time.deltaTime;
+            if (actionTimer <= 0)
+                return Status.SUCCESS;
+            else return Status.RUNNING;
+        }
+
+        public override void Enter()
+        {
+            actionTimer = actionTime;
+        }
+        public override void Exit() { }
+    }
+    class GoToState : State<CreatureController>
+    {
+        private Transform dst;
+
+        public GoToState(CreatureController owner, Transform destination) : base(owner) { dst = destination; }
+
+        public override Status Check(float deltaTime)
+        {
+            owner.navAgent.destination = dst.position;
+            if (Vector3.Distance(owner.transform.position, dst.position) <= 0.5)
+                return Status.SUCCESS;
+            return Status.RUNNING;
+        }
+
+        public override void Enter() { }
+        public override void Exit() { }
+    }
 }

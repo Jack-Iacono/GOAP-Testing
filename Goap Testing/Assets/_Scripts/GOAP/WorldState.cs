@@ -253,7 +253,7 @@ public class WorldState
         }*/
         foreach(Property.Key prop in properties.Keys)
         {
-            s += "\n" + prop + ": " + properties[prop].data;
+            s += "\n" + prop + " "  + properties[prop].CompareString() + " " + properties[prop].data;
         }
         return s;
     }

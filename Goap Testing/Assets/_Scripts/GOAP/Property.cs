@@ -428,5 +428,23 @@ public class Property
         }
 
         #endregion
+
+        #region Helper Methods
+
+        public string CompareString()
+        {
+            switch (compareType)
+            {
+                case CompareType.EQUAL: return "=";
+                case CompareType.GREATER: return ">";
+                case CompareType.LESS: return "<";
+                case CompareType.GREATER_EQUAL: return ">=";
+                case CompareType.LESS_EQUAL: return "<=";
+                case CompareType.NOT_EQUAL: return "!=";
+                default: return "";
+            }
+        }
+
+        #endregion
     }
 }
