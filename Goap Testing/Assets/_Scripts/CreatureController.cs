@@ -20,6 +20,7 @@ public class CreatureController : MonoBehaviour
     private List<Action> actions;
 
     private List<WorldState> goals = new List<WorldState>();
+    private PriorityQueue<WorldState> goalQueue = new PriorityQueue<WorldState>();
 
     public GameObject homeObject;
     public GameObject workObject;
@@ -31,7 +32,8 @@ public class CreatureController : MonoBehaviour
 
     private bool hasPlan;
 
-    public float startDelay = 0;
+    private float maxHunger = 20;
+    private float currentHunger = 20;
 
     private void Awake()
     {
@@ -58,7 +60,8 @@ public class CreatureController : MonoBehaviour
                         {
                             { new Property.Key("at_home", gameObject), new Property.Value(false) },
                             { new Property.Key("at_work", gameObject), new Property.Value(true) },
-                            { new Property.Key("at_customer", gameObject), new Property.Value(false) }
+                            { new Property.Key("at_customer", gameObject), new Property.Value(false) },
+                            { new Property.Key("is_hungry", gameObject), new Property.Value(false) }
                         }
                     ),
                     new WorldState
@@ -78,7 +81,8 @@ public class CreatureController : MonoBehaviour
                         {
                             { new Property.Key("at_home", gameObject), new Property.Value(false) },
                             { new Property.Key("at_work", gameObject), new Property.Value(true) },
-                            { new Property.Key("at_customer", gameObject), new Property.Value(false) }
+                            { new Property.Key("at_customer", gameObject), new Property.Value(false) },
+                            { new Property.Key("is_hungry", gameObject), new Property.Value(false) }
                         }
                     ),
                     new WorldState
@@ -99,7 +103,8 @@ public class CreatureController : MonoBehaviour
                             { new Property.Key("has_pizza", gameObject), new Property.Value(1, Property.Value.CompareType.GREATER_EQUAL) },
                             { new Property.Key("at_home", gameObject), new Property.Value(false) },
                             { new Property.Key("at_work", gameObject), new Property.Value(false) },
-                            { new Property.Key("at_customer", gameObject), new Property.Value(true) }
+                            { new Property.Key("at_customer", gameObject), new Property.Value(true) },
+                            { new Property.Key("is_hungry", gameObject), new Property.Value(false) }
                         }
                     ),
                     new WorldState
@@ -123,7 +128,8 @@ public class CreatureController : MonoBehaviour
                             { new Property.Key("has_pizza", gameObject), new Property.Value(3, Property.Value.CompareType.GREATER_EQUAL) },
                             { new Property.Key("at_home", gameObject), new Property.Value(false) },
                             { new Property.Key("at_work", gameObject), new Property.Value(false) },
-                            { new Property.Key("at_customer", gameObject), new Property.Value(true) }
+                            { new Property.Key("at_customer", gameObject), new Property.Value(true) },
+                            { new Property.Key("is_hungry", gameObject), new Property.Value(false) }
                         }
                     ),
                     new WorldState
@@ -220,48 +226,23 @@ public class CreatureController : MonoBehaviour
                     , FindCustomer
                 ),
             new Action
-                ("Deposit Money 1", 5,
+                ("Eat", 1,
                     new WorldState
                     (
                         new Dictionary<Property.Key, Property.Value>()
                         {
-                            { new Property.Key("has_money", gameObject), new Property.Value(1, Property.Value.CompareType.GREATER_EQUAL) },
-                            { new Property.Key("at_home", gameObject), new Property.Value(false) },
-                            { new Property.Key("at_work", gameObject), new Property.Value(true) },
-                            { new Property.Key("at_customer", gameObject), new Property.Value(false) }
+                            { new Property.Key("is_hungry", gameObject), new Property.Value(true) },
+                            { new Property.Key("at_home", gameObject), new Property.Value(true) }
                         }
                     ),
                     new WorldState
                     (
                         new Dictionary<Property.Key, Property.Value>()
                         {
-                            { new Property.Key("has_money", gameObject), new Property.Value(-1, Property.Value.MergeType.ADD) },
-                            { new Property.Key("has_money"), new Property.Value(1, Property.Value.MergeType.ADD) }
+                            { new Property.Key("is_hungry", gameObject), new Property.Value(false) }
                         }
                     )
-                    , SellPizza
-                ),
-            new Action
-                ("Deposit Money 5", 5,
-                    new WorldState
-                    (
-                        new Dictionary<Property.Key, Property.Value>()
-                        {
-                            { new Property.Key("has_money", gameObject), new Property.Value(5, Property.Value.CompareType.GREATER_EQUAL) },
-                            { new Property.Key("at_home", gameObject), new Property.Value(false) },
-                            { new Property.Key("at_work", gameObject), new Property.Value(true) },
-                            { new Property.Key("at_customer", gameObject), new Property.Value(false) }
-                        }
-                    ),
-                    new WorldState
-                    (
-                        new Dictionary<Property.Key, Property.Value>()
-                        {
-                            { new Property.Key("has_money", gameObject), new Property.Value(-5, Property.Value.MergeType.ADD) },
-                            { new Property.Key("has_money"), new Property.Value(5, Property.Value.MergeType.ADD) }
-                        }
-                    )
-                    , SellPizza
+                    , EatPizza
                 )
         };
 
@@ -272,6 +253,7 @@ public class CreatureController : MonoBehaviour
                     { new Property.Key("at_home", gameObject), new Property.Value(false) },
                     { new Property.Key("at_work", gameObject), new Property.Value(false) },
                     { new Property.Key("at_customer", gameObject), new Property.Value(false) },
+                    { new Property.Key("is_hungry", gameObject), new Property.Value(false) },
                     { new Property.Key("found_customer", gameObject), new Property.Value(false) }
                 });
 
@@ -288,6 +270,34 @@ public class CreatureController : MonoBehaviour
                 {
                     { new Property.Key("has_pizza", gameObject), new Property.Value(0, Property.Value.CompareType.EQUAL) }
                 })
+            );
+
+        goalQueue = new PriorityQueue<WorldState>
+            (
+                new List<PriorityQueue<WorldState>.Element>
+                {
+                    new PriorityQueue<WorldState>.Element
+                    (
+                        new WorldState(
+                            new Dictionary<Property.Key, Property.Value>()
+                            {
+                                { new Property.Key("has_pizza", gameObject), new Property.Value(5, Property.Value.CompareType.GREATER_EQUAL) }
+                            }
+                        ),
+                        1
+                    )
+                    ,
+                    new PriorityQueue<WorldState>.Element
+                    (
+                        new WorldState(
+                            new Dictionary<Property.Key, Property.Value>()
+                            {
+                                { new Property.Key("has_pizza", gameObject), new Property.Value(0, Property.Value.CompareType.EQUAL) }
+                            }
+                        ),
+                        2
+                    )
+                }
             );
         
 
@@ -308,6 +318,11 @@ public class CreatureController : MonoBehaviour
         {
             ExecutePlan();
         }
+
+        if (currentHunger > 0)
+            currentHunger -= Time.deltaTime;
+        if (currentHunger <= 10)
+            currentWorldState.ChangeProperty(new Property.Key("is_hungry", gameObject), new Property.Value(true));
     }
     private void MakePlan()
     {
@@ -393,6 +408,10 @@ public class CreatureController : MonoBehaviour
     {
         ChangeState(new SellPizzaState(this));
     }
+    private void EatPizza()
+    {
+        ChangeState(new EatPizzaState(this));
+    }
     private void FindCustomer()
     {
         ChangeState(new FindCustomerState(this));
@@ -472,6 +491,27 @@ public class CreatureController : MonoBehaviour
             actionTimer = actionTime;
         }
         public override void Exit() { }
+    }
+    class EatPizzaState : State<CreatureController>
+    {
+        private float actionTime = 2;
+        private float actionTimer = 0;
+
+        public EatPizzaState(CreatureController owner) : base(owner) { }
+
+        public override Status Check(float deltaTime)
+        {
+            actionTimer -= Time.deltaTime;
+            if (actionTimer <= 0)
+                return Status.SUCCESS;
+            else return Status.RUNNING;
+        }
+
+        public override void Enter()
+        {
+            actionTimer = actionTime;
+        }
+        public override void Exit() { owner.currentHunger = owner.maxHunger; }
     }
     class GoToState : State<CreatureController>
     {
