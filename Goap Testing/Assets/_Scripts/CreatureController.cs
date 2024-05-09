@@ -284,7 +284,7 @@ public class CreatureController : MonoBehaviour
                                 { new Property.Key("has_pizza", gameObject), new Property.Value(5, Property.Value.CompareType.GREATER_EQUAL) }
                             }
                         ),
-                        1
+                        5
                     )
                     ,
                     new PriorityQueue<WorldState>.Element
@@ -295,7 +295,7 @@ public class CreatureController : MonoBehaviour
                                 { new Property.Key("has_pizza", gameObject), new Property.Value(0, Property.Value.CompareType.EQUAL) }
                             }
                         ),
-                        2
+                        4
                     )
                 }
             );
