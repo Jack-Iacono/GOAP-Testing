@@ -32,8 +32,8 @@ public class CreatureController : MonoBehaviour
 
     private bool hasPlan;
 
-    private float maxHunger = 20;
-    private float currentHunger = 20;
+    private float maxHunger = 100;
+    private float currentHunger = 100;
 
     private void Awake()
     {
@@ -522,7 +522,7 @@ public class CreatureController : MonoBehaviour
         public override Status Check(float deltaTime)
         {
             owner.navAgent.destination = dst.position;
-            if (Vector3.Distance(owner.transform.position, dst.position) <= 0.5)
+            if (Vector3.Distance(owner.transform.position, dst.position) <= 1)
                 return Status.SUCCESS;
             return Status.RUNNING;
         }
